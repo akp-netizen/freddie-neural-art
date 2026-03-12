@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Art – Module 1: Neuro-Rhythm</title>
+<style>
+  :root {
+    --purple: #7C3AED;
+    --purple-light: #EDE9FE;
+    --purple-dark: #5B21B6;
+    --bg: #F8FAFC;
+    --dark: #1E293B;
+    --mid: #64748B;
+    --white: #FFFFFF;
+    --green: #059669;
+    --yellow: #D97706;
+    --red: #DC2626;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #5B21B6, #7C3AED);
+    color: white;
+    padding: 24px 20px 20px;
+    text-align: center;
+    position: relative;
+  }
+  .header .module-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    opacity: 0.75;
+    margin-bottom: 8px;
+  }
+  .header h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 900; }
+  .header p  { font-size: 0.9rem; opacity: 0.85; margin-top: 6px; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+  .xp-bar-wrap {
+    background: rgba(255,255,255,0.2);
+    border-radius: 99px;
+    height: 12px;
+    margin: 16px auto 0;
+    max-width: 320px;
+    overflow: hidden;
+  }
+  .xp-bar {
+    background: #FCD34D;
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+    width: 0%;
+  }
+  .xp-label {
+    font-size: 0.75rem;
+    opacity: 0.85;
+    margin-top: 6px;
+    font-weight: 700;
+  }
+
+  /* ── LESSON LIST ── */
+  .lesson-list {
+    max-width: 600px;
+    margin: 28px auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .lesson-btn {
+    background: white;
+    border: 2px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 18px 20px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    position: relative;
+  }
+  .lesson-btn:hover { border-color: var(--purple); transform: translateX(4px); box-shadow: 0 4px 16px rgba(124,58,237,0.12); }
+  .lesson-btn.done { border-color: var(--green); background: #F0FDF4; }
+  .lesson-btn.locked { opacity: 0.45; cursor: not-allowed; }
+  .lesson-btn.locked:hover { transform: none; box-shadow: none; border-color: #E2E8F0; }
+
+  .lesson-num {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--purple-light);
+    color: var(--purple-dark);
+    font-weight: 900;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .lesson-btn.done .lesson-num { background: #DCFCE7; color: var(--green); }
+
+  .lesson-info h3 { font-size: 1rem; font-weight: 800; margin-bottom: 3px; }
+  .lesson-info p  { font-size: 0.8rem; color: var(--mid); }
+
+  .done-badge {
+    margin-left: auto;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .lesson-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: var(--purple-light);
+    color: var(--purple-dark);
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .lesson-btn.done .lesson-tag { background: #DCFCE7; color: var(--green); }
+
+  /* ── LESSON SCREEN ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .lesson-screen {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+
+  .back-btn {
+    background: none;
+    border: 2px solid #E2E8F0;
+    border-radius: 99px;
+    padding: 8px 18px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+    color: var(--dark);
+  }
+  .back-btn:hover { background: #F1F5F9; }
+
+  .lesson-hero {
+    background: linear-gradient(135deg, #5B21B6, #7C3AED);
+    border-radius: 20px;
+    padding: 28px 24px;
+    color: white;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .lesson-hero::after {
+    content: attr(data-emoji);
+    position: absolute;
+    right: 16px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 4rem;
+    opacity: 0.25;
+  }
+  .lesson-hero .tag { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin-bottom: 6px; }
+  .lesson-hero h2 { font-size: 1.4rem; font-weight: 900; margin-bottom: 6px; }
+  .lesson-hero p  { font-size: 0.88rem; opacity: 0.85; max-width: 380px; }
+
+  /* ── TIMER ── */
+  .timer-block {
+    background: white;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 2px solid #E2E8F0;
+  }
+  .timer-display {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--purple);
+    font-variant-numeric: tabular-nums;
+    min-width: 80px;
+  }
+  .timer-display.warning { color: var(--yellow); }
+  .timer-display.done-color { color: var(--green); }
+  .timer-btn {
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 99px;
+    padding: 10px 20px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .timer-btn:hover { background: var(--purple-dark); }
+  .timer-btn.running { background: var(--yellow); }
+  .timer-label { font-size: 0.78rem; color: var(--mid); font-weight: 600; }
+
+  /* ── STEPS ── */
+  .steps-container { margin-bottom: 16px; }
+
+  .step-card {
+    background: white;
+    border-radius: 14px;
+    border: 2px solid #E2E8F0;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .step-card.active-step { border-color: var(--purple); box-shadow: 0 4px 16px rgba(124,58,237,0.12); }
+  .step-card.completed-step { border-color: var(--green); background: #F0FDF4; }
+
+  .step-header {
+    padding: 16px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+  }
+  .step-number {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--purple-light);
+    color: var(--purple-dark);
+    font-weight: 900;
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-card.active-step .step-number { background: var(--purple); color: white; }
+  .step-card.completed-step .step-number { background: var(--green); color: white; }
+
+  .step-title { font-size: 0.95rem; font-weight: 700; flex: 1; padding-top: 6px; }
+  .step-chevron { font-size: 0.85rem; color: var(--mid); padding-top: 6px; transition: transform 0.2s; }
+  .step-card.open .step-chevron { transform: rotate(180deg); }
+
+  .step-body {
+    display: none;
+    padding: 0 18px 16px 64px;
+    font-size: 0.88rem;
+    color: #334155;
+    line-height: 1.7;
+  }
+  .step-card.open .step-body { display: block; }
+
+  .step-done-btn {
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 99px;
+    padding: 8px 18px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s;
+  }
+  .step-done-btn:hover { background: #047857; }
+
+  /* ── BRAIN BOX ── */
+  .brain-box {
+    background: #FAF5FF;
+    border-left: 4px solid var(--purple);
+    border-radius: 0 12px 12px 0;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.85rem;
+    color: #4C1D95;
+    line-height: 1.6;
+  }
+  .brain-box strong { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; opacity: 0.7; }
+
+  .tip-box {
+    background: #EFF6FF;
+    border-left: 4px solid #3B82F6;
+    border-radius: 0 12px 12px 0;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.85rem;
+    color: #1E40AF;
+    line-height: 1.6;
+  }
+  .tip-box strong { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; opacity: 0.7; }
+
+  /* ── COMPLETE BUTTON ── */
+  .complete-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    border: 2px solid #E2E8F0;
+    margin-top: 20px;
+  }
+  .complete-section h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+  .complete-section p { font-size: 0.85rem; color: var(--mid); margin-bottom: 16px; }
+
+  .feel-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .feel-btn {
+    background: #F1F5F9;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 1.4rem;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .feel-btn span { font-size: 0.68rem; font-weight: 700; color: var(--mid); }
+  .feel-btn:hover, .feel-btn.selected { border-color: var(--purple); background: var(--purple-light); transform: scale(1.08); }
+
+  .mark-done-btn {
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 99px;
+    padding: 14px 36px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    max-width: 280px;
+  }
+  .mark-done-btn:hover { background: var(--purple-dark); transform: scale(1.02); }
+  .mark-done-btn:disabled { background: var(--green); cursor: default; transform: none; }
+
+  /* ── CONFETTI ── */
+  .confetti-wrap {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -10px;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* ── BADGE POPUP ── */
+  .badge-popup {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: white;
+    border-radius: 24px;
+    padding: 36px 40px;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 320px;
+    width: 90%;
+  }
+  .badge-popup.show { transform: translate(-50%, -50%) scale(1); }
+  .badge-popup .badge-icon { font-size: 4rem; margin-bottom: 12px; }
+  .badge-popup h2 { font-size: 1.4rem; font-weight: 900; margin-bottom: 6px; }
+  .badge-popup p { font-size: 0.88rem; color: var(--mid); margin-bottom: 20px; }
+  .badge-popup button {
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 99px;
+    padding: 12px 28px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 999;
+    display: none;
+  }
+  .overlay.show { display: block; }
+
+  /* ── MODE TOGGLE ── */
+  .mode-toggle {
+    display: flex;
+    background: white;
+    border-radius: 99px;
+    padding: 4px;
+    border: 2px solid #E2E8F0;
+    max-width: 280px;
+    margin: 16px auto 0;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 99px;
+    border: none;
+    background: none;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--mid);
+  }
+  .mode-btn.active { background: var(--purple); color: white; }
+
+  /* ── TOGETHER / SOLO differences ── */
+  .solo-only { display: none; }
+  .together-only { display: block; }
+  body.solo-mode .solo-only { display: block; }
+  body.solo-mode .together-only { display: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 400px) {
+    .lesson-hero h2 { font-size: 1.2rem; }
+    .timer-display { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     SCREEN 1: MODULE HOME
+════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+
+  <div class="header">
+    <div class="module-tag">Module 1 of 5</div>
+    <h1>⚡ Neuro-Rhythm</h1>
+    <p>Wake up your brain and hands. 6 missions. Each one builds the next.</p>
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-together" onclick="setMode('together')">🧑‍🦰 Together Mode</button>
+      <button class="mode-btn" id="btn-solo" onclick="setMode('solo')">⚡ Solo Mode</button>
+    </div>
+
+    <div class="xp-bar-wrap">
+      <div class="xp-bar" id="xp-bar"></div>
+    </div>
+    <div class="xp-label" id="xp-label">0 / 6 missions done · 0 XP</div>
+  </div>
+
+  <div class="lesson-list" id="lesson-list"></div>
+
+</div>
+
+<!-- ═══════════════════════════════════
+     SCREEN 2: LESSON VIEW
+════════════════════════════════════ -->
+<div id="screen-lesson" class="screen">
+  <div class="lesson-screen">
+    <button class="back-btn" onclick="goHome()">← Back to Missions</button>
+    <div id="lesson-content"></div>
+  </div>
+</div>
+
+<!-- CONFETTI + BADGE -->
+<div class="confetti-wrap" id="confetti-wrap"></div>
+<div class="overlay" id="overlay"></div>
+<div class="badge-popup" id="badge-popup">
+  <div class="badge-icon" id="badge-icon">🏅</div>
+  <h2 id="badge-title">Mission Complete!</h2>
+  <p id="badge-msg">Great work, Freddie!</p>
+  <button onclick="closeBadge()">Keep Going →</button>
+</div>
+
+<script>
+// ─────────────────────────────────────
+// DATA: All 6 lessons
+// ─────────────────────────────────────
+const LESSONS = [
+  {
+    id: 1,
+    title: "What IS Neural Art?",
+    tag: "Theory",
+    emoji: "🧠",
+    tagline: "Find out why moving your body makes your brain grow.",
+    time: 10,
+    xp: 50,
+    badge: { icon: "🧠", title: "Brain Unlocked!", msg: "You know the science now. Time to use it." },
+    steps: [
+      {
+        title: "Your brain is a city",
+        body: `Imagine your brain is a giant city with millions of roads connecting neighborhoods. When you were born, lots of those roads were just dirt tracks.<br><br>Every time you practice something — walking, catching a ball, drawing — those tracks turn into highways. <strong>Neural art builds brand new highways.</strong>`
+      },
+      {
+        title: "What happens when you draw",
+        body: `When you pick up a pencil, FIVE parts of your brain turn on at the same time:<br><br>
+👁️ <strong>Eyes</strong> — look at the paper<br>
+✋ <strong>Motor cortex</strong> — tells your hand what to do<br>
+🎯 <strong>Cerebellum</strong> — keeps your hand smooth<br>
+💡 <strong>Prefrontal cortex</strong> — decides what comes next<br>
+❤️ <strong>Limbic system</strong> — feels happy when it looks good<br><br>
+One circle = five brain regions working together. That's why this works.`
+      },
+      {
+        title: "The secret weapon: BOTH hands",
+        body: `<div class="brain-box"><strong>🧠 Brain Science</strong>Your left brain controls your right hand. Your right brain controls your left hand. When BOTH hands work together, your brain builds a superhighway called the <strong>corpus callosum</strong>. Thicker bridge = faster, smarter thinking.</div>
+That's what this whole course is about. You're not just learning to draw. You're upgrading your brain.`
+      },
+      {
+        title: "Your 5-module journey",
+        body: `Here's where you're going:<br><br>
+⚡ <strong>Module 1</strong> — Wake up your hands (you're here!)<br>
+🪞 <strong>Module 2</strong> — Both hands do the same thing<br>
+🏆 <strong>Module 3</strong> — Both hands do DIFFERENT things<br>
+✍️ <strong>Module 4</strong> — Super-precise grip training<br>
+🔍 <strong>Module 5</strong> — Think like a detective + architect<br><br>
+Each module unlocks the next. You're on level 1.`
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: "Memory Hands Game",
+    tag: "Game",
+    emoji: "👏",
+    tagline: "Learn a secret sequence and remember it with your hands.",
+    time: 10,
+    xp: 75,
+    badge: { icon: "👏", title: "Hands Remember!", msg: "+75 XP. Your muscle memory is building!" },
+    steps: [
+      {
+        title: "The warm-up",
+        body: `Rub both palms together FAST for 10 seconds. Feel the heat? That's blood rushing to your hands, telling your brain: <em>"Game time."</em><br><br>Do it now before moving on. ☝️`
+      },
+      {
+        title: "Learn the 4 moves",
+        body: `Here are your 4 moves. Practice each one 3 times before continuing:<br><br>
+1️⃣ <strong>CLAP</strong> — both hands together<br>
+2️⃣ <strong>PAT LEFT</strong> — left hand pats left thigh<br>
+3️⃣ <strong>PAT RIGHT</strong> — right hand pats right thigh<br>
+4️⃣ <strong>TAP TABLE</strong> — both hands tap the surface in front of you<br><br>
+Got them? Good.`
+      },
+      {
+        title: "Level 1 — 2 moves",
+        body: `Do this 3 times without looking at your hands:<br><br>
+<strong>CLAP → PAT LEFT</strong><br><br>
+Slow first. Then normal speed. Then fast.`
+      },
+      {
+        title: "Level 2 — 3 moves",
+        body: `Add the third move. Do it 3 times:<br><br>
+<strong>CLAP → PAT LEFT → PAT RIGHT</strong><br><br>
+Speed up on the 3rd try. Your brain should be predicting what comes next.`
+      },
+      {
+        title: "Level 3 — Full sequence",
+        body: `The complete sequence. 5 times through:<br><br>
+<strong>CLAP → PAT LEFT → PAT RIGHT → TAP TABLE</strong><br><br>
+<div class="tip-box"><strong>💡 Challenge</strong>On the last run — CLOSE YOUR EYES. Your hands should know the sequence by now. That's muscle memory activating!</div>`
+      }
+    ]
+  },
+  {
+    id: 3,
+    title: "Ready-Set-Palms",
+    tag: "Warm-Up",
+    emoji: "🖐️",
+    tagline: "Wake up your hands before every single session.",
+    time: 8,
+    xp: 60,
+    badge: { icon: "🖐️", title: "Hands Online!", msg: "+60 XP. Use this warm-up every single session!" },
+    steps: [
+      {
+        title: "Palm Pulse",
+        body: `Place BOTH palms flat on the table.<br><br>Press down firmly for <strong>3 seconds</strong>. Release. Repeat 5 times.<br><br>Feel the pulse of pressure? That's your nerve endings turning on.`
+      },
+      {
+        title: "Finger Fan",
+        body: `Spread ALL 10 fingers as wide as you can. Hold for 3 seconds.<br><br>Make tight fists. Hold for 3 seconds.<br><br>Spread again. Do this <strong>6 times</strong>.<br><br>This tells every single finger: "You're needed today."`
+      },
+      {
+        title: "Thumb Tap Sequence",
+        body: `Touch your thumb to each fingertip, one at a time:<br><br>
+<strong>Index → Middle → Ring → Pinky → then reverse</strong><br><br>
+Do it with BOTH hands at the same time. Start slow. Speed up each round. Do 3 full rounds.`
+      },
+      {
+        title: "Wrist Rolls",
+        body: `Make loose fists. Roll both wrists at the same time:<br><br>
+<strong>Forward 5 times → Backward 5 times</strong><br><br>
+Keep both wrists moving simultaneously. Don't let one stop while the other goes.`
+      },
+      {
+        title: "The Ready Signal",
+        body: `Shake both hands out loose. Then press both palms flat on the table and say (out loud or in your head):<br><br>
+<strong>"Ready."</strong><br><br>
+<div class="brain-box"><strong>🧠 Why this works</strong>Doing this same signal every time teaches your brain to instantly switch into focus mode. Like a switch. Athletes do this before every competition. Now you do too.</div>`
+      }
+    ]
+  },
+  {
+    id: 4,
+    title: "Push & Pause Drill",
+    tag: "Drill",
+    emoji: "✏️",
+    tagline: "Train your hand's brake system. Start AND stop on command.",
+    time: 10,
+    xp: 75,
+    badge: { icon: "🛑", title: "Brake System Trained!", msg: "+75 XP. Control unlocked!" },
+    steps: [
+      {
+        title: "Get your pencil and paper",
+        body: `You need:<br><br>
+✏️ A pencil<br>
+📄 A piece of paper<br><br>
+<div class="tip-box"><strong>💡 Think of it like this</strong>Great artists know when to STOP as much as when to go. A sculptor knows when to put down the chisel. This drill teaches your hand's brake system.</div>`
+      },
+      {
+        title: "Basic line — stop at the edge",
+        body: `Draw a straight line from LEFT to RIGHT across the paper.<br><br>
+Stop exactly at the edge. Not before, not after.<br><br>
+<strong>Do this 3 times.</strong> Focus on the exact moment your hand stops.`
+      },
+      {
+        title: "Push-Pause Rhythm",
+        body: `Draw for <strong>2 seconds → pause for 1 second → draw for 2 seconds → pause.</strong><br><br>
+Keep going across the whole page. Like breathing in and out.<br><br>
+Do this for 2 full minutes. The pause is as important as the drawing.`
+      },
+      {
+        title: "Pressure Switch",
+        body: `Draw pressing <strong>HARD</strong> for 2 seconds — dark, bold line.<br>
+Then press <strong>LIGHTLY</strong> for 2 seconds — barely visible.<br><br>
+Alternate back and forth. This teaches your hand to control force, not just movement.`
+      },
+      {
+        title: "The Shape Challenge",
+        body: `Draw a circle. Try to complete it in exactly <strong>5 seconds</strong>.<br><br>
+Not too fast. Not too slow. Count in your head: 1...2...3...4...5 — done.<br><br>
+Try with a triangle. Then a square. <strong>5 seconds each.</strong><br><br>
+<div class="brain-box"><strong>🧠 What's happening</strong>This trains your prefrontal cortex — the same brain area that helps with decisions and self-control. Drawing literally makes you better at controlling your impulses in real life.</div>`
+      }
+    ]
+  },
+  {
+    id: 5,
+    title: "Pattern Match",
+    tag: "Memory",
+    emoji: "🔄",
+    tagline: "Look. Remember. Draw. Your visual brain leveling up.",
+    time: 12,
+    xp: 80,
+    badge: { icon: "🔄", title: "Pattern Brain!", msg: "+80 XP. Your visual memory is growing!" },
+    steps: [
+      {
+        title: "Study the pattern — 10 seconds",
+        body: `Look at this pattern for exactly 10 seconds. Then scroll down — don't peek back!<br><br>
+<div style="background:#EDE9FE;border-radius:12px;padding:20px;text-align:center;margin:12px 0;">
+<svg width="200" height="100" viewBox="0 0 200 100">
+  <line x1="20" y1="20" x2="180" y2="20" stroke="#7C3AED" stroke-width="3"/>
+  <circle cx="40" cy="55" r="15" fill="none" stroke="#7C3AED" stroke-width="3"/>
+  <polyline points="80,70 100,35 120,70 140,35 160,70" stroke="#7C3AED" stroke-width="3" fill="none"/>
+  <rect x="20" y="75" width="20" height="20" fill="none" stroke="#7C3AED" stroke-width="3"/>
+</svg>
+</div>
+Got it memorized? Now scroll down and draw it from memory.`
+      },
+      {
+        title: "Draw it from memory",
+        body: `No peeking! Draw what you remember on your paper.<br><br>
+Don't worry if it's not perfect. Your brain is measuring the gap between what you saw and what you drew — <strong>that measuring IS the learning.</strong><br><br>
+Done? Continue to compare.`
+      },
+      {
+        title: "Compare — what matched?",
+        body: `Scroll back up and look at the original pattern. Compare it to your drawing.<br><br>
+<strong>Notice:</strong> What did you remember correctly? What did you miss or change?<br><br>
+No judgment. Just observation. You're being a scientist right now.`
+      },
+      {
+        title: "Round 2 — only 5 seconds",
+        body: `Look at the pattern again for only <strong>5 seconds</strong> this time. Then draw from memory.<br><br>
+<div style="background:#EDE9FE;border-radius:12px;padding:20px;text-align:center;margin:12px 0;">
+<svg width="200" height="80" viewBox="0 0 200 80">
+  <path d="M20,40 Q60,10 100,40 Q140,70 180,40" stroke="#7C3AED" stroke-width="3" fill="none"/>
+  <circle cx="20" cy="65" r="8" fill="#7C3AED"/>
+  <circle cx="100" cy="65" r="8" fill="#7C3AED"/>
+  <circle cx="180" cy="65" r="8" fill="#7C3AED"/>
+</svg>
+</div>
+Shorter look time = harder = MORE brain growth. You've got this.`
+      },
+      {
+        title: "Make YOUR own pattern",
+        body: `Create your own pattern using only these 4 elements:<br><br>
+<strong>Straight line · Curve · Dot · Zigzag</strong><br><br>
+Draw it on paper. Show it to someone and see if they can copy it from a 10-second look!<br><br>
+<div class="brain-box"><strong>🧠 The flip</strong>When you CREATE a pattern for someone else to copy, you're using an even higher level of visual-brain thinking. Nice work.</div>`
+      }
+    ]
+  },
+  {
+    id: 6,
+    title: "Owl Breathing",
+    tag: "Breathwork",
+    emoji: "🦉",
+    tagline: "Reset your brain and lock in everything you learned.",
+    time: 8,
+    xp: 60,
+    badge: { icon: "🦉", title: "Owl Mode Unlocked!", msg: "+60 XP. Module 1 COMPLETE! You earned the Neuro-Rhythm badge! ⚡" },
+    steps: [
+      {
+        title: "Sit like an owl",
+        body: `Sit up tall. Feet flat on the floor. Hands resting on your knees.<br><br>
+Tuck your chin slightly — this opens your airway.<br><br>
+<div class="tip-box"><strong>💡 Think of it like this</strong>An owl is perfectly still before it moves — totally calm, totally aware. That's the state we're going for. You're the owl.</div>`
+      },
+      {
+        title: "The 4-4-6-2 pattern",
+        body: `Here's the Owl Breathing cycle. We'll do 5 rounds:<br><br>
+😤 <strong>Breathe IN</strong> through your nose — 4 counts. Belly expands like a balloon.<br>
+⏸️ <strong>HOLD</strong> — 4 counts. Still as an owl on a branch.<br>
+😮‍💨 <strong>Breathe OUT</strong> through your mouth — 6 counts. Slow, like fogging a window.<br>
+⏸️ <strong>PAUSE</strong> empty — 2 counts. Then begin again.<br><br>
+Ready? Go through 5 full rounds now.`
+      },
+      {
+        title: "Owl Head Turns (bonus)",
+        body: `Add this while breathing:<br><br>
+↩️ Turn head <strong>LEFT</strong> on the inhale<br>
+⬆️ Back to <strong>CENTER</strong> on the hold<br>
+↪️ Turn head <strong>RIGHT</strong> on the exhale<br>
+⬆️ Back to <strong>CENTER</strong> on the pause<br><br>
+This activates your vagus nerve — your brain's relaxation superhighway. 5 rounds with turns.`
+      },
+      {
+        title: "The final breath",
+        body: `Take one big deep breath in — as much air as you can hold.<br><br>
+Hold for 2 seconds.<br><br>
+Let it ALL out in one long sigh. 😮‍💨<br><br>
+<div class="brain-box"><strong>🧠 Why we always end here</strong>Slow breathing activates your "rest and learn" mode. In this state your brain stores information up to 40% better. Every session ends with Owl Breathing — it locks in what you learned today.</div>`
+      }
+    ]
+  }
+];
+
+// ─────────────────────────────────────
+// STATE
+// ─────────────────────────────────────
+const STORAGE_KEY = 'freddie_m1_progress';
+let state = {
+  completed: [],   // array of lesson IDs completed
+  feelings: {},    // lessonId -> emoji
+  mode: 'together' // 'together' or 'solo'
+};
+let timerInterval = null;
+let timerSeconds = 0;
+let timerRunning = false;
+let currentLesson = null;
+let openStep = -1;
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) state = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+// ─────────────────────────────────────
+// MODE
+// ─────────────────────────────────────
+function setMode(mode) {
+  state.mode = mode;
+  saveState();
+  document.body.classList.toggle('solo-mode', mode === 'solo');
+  document.getElementById('btn-together').classList.toggle('active', mode === 'together');
+  document.getElementById('btn-solo').classList.toggle('active', mode === 'solo');
+}
+
+// ─────────────────────────────────────
+// HOME SCREEN
+// ─────────────────────────────────────
+function renderHome() {
+  const done = state.completed.length;
+  const totalXP = state.completed.reduce((sum, id) => {
+    const l = LESSONS.find(x => x.id === id);
+    return sum + (l ? l.xp : 0);
+  }, 0);
+
+  document.getElementById('xp-bar').style.width = (done / LESSONS.length * 100) + '%';
+  document.getElementById('xp-label').textContent = `${done} / ${LESSONS.length} missions done · ${totalXP} XP`;
+
+  const list = document.getElementById('lesson-list');
+  list.innerHTML = '';
+
+  LESSONS.forEach((lesson, i) => {
+    const isDone = state.completed.includes(lesson.id);
+    const isLocked = i > 0 && !state.completed.includes(LESSONS[i-1].id);
+
+    const btn = document.createElement('button');
+    btn.className = 'lesson-btn' + (isDone ? ' done' : '') + (isLocked ? ' locked' : '');
+    btn.innerHTML = `
+      <div class="lesson-num">${isDone ? '✓' : lesson.id}</div>
+      <div class="lesson-info">
+        <h3>${lesson.emoji} ${lesson.title}</h3>
+        <p>${lesson.tagline}</p>
+      </div>
+      ${isDone
+        ? `<div class="done-badge">⭐</div>`
+        : `<span class="lesson-tag">${isLocked ? '🔒' : lesson.tag}</span>`
+      }
+    `;
+    if (!isLocked) btn.onclick = () => openLesson(lesson.id);
+    list.appendChild(btn);
+  });
+}
+
+// ─────────────────────────────────────
+// LESSON SCREEN
+// ─────────────────────────────────────
+function openLesson(id) {
+  currentLesson = LESSONS.find(l => l.id === id);
+  openStep = 0;
+  timerSeconds = currentLesson.time * 60;
+  stopTimer();
+
+  document.getElementById('screen-home').classList.remove('active');
+  document.getElementById('screen-lesson').classList.add('active');
+  window.scrollTo(0,0);
+  renderLesson();
+}
+
+function goHome() {
+  stopTimer();
+  document.getElementById('screen-lesson').classList.remove('active');
+  document.getElementById('screen-home').classList.add('active');
+  renderHome();
+  window.scrollTo(0,0);
+}
+
+function renderLesson() {
+  const l = currentLesson;
+  const isDone = state.completed.includes(l.id);
+  const selectedFeel = state.feelings[l.id] || null;
+
+  let stepsHTML = l.steps.map((step, i) => {
+    const isOpen = i === openStep;
+    const isCompletedStep = i < openStep;
+    return `
+      <div class="step-card ${isOpen ? 'active-step open' : ''} ${isCompletedStep ? 'completed-step' : ''}" id="step-${i}">
+        <div class="step-header" onclick="toggleStep(${i})">
+          <div class="step-number">${isCompletedStep ? '✓' : i+1}</div>
+          <div class="step-title">${step.title}</div>
+          <div class="step-chevron">${isOpen ? '▲' : '▼'}</div>
+        </div>
+        <div class="step-body">
+          ${step.body}
+          ${i < l.steps.length - 1 && isOpen
+            ? `<button class="step-done-btn" onclick="nextStep(${i})">Got it → Next step</button>`
+            : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const feelOptions = [
+    { emoji: '😤', label: 'Hard!' },
+    { emoji: '😐', label: 'Okay' },
+    { emoji: '😎', label: 'Easy!' },
+    { emoji: '🤩', label: 'Fun!' }
+  ];
+
+  document.getElementById('lesson-content').innerHTML = `
+    <div class="lesson-hero" data-emoji="${l.emoji}">
+      <div class="tag">Mission ${l.id} of ${LESSONS.length} · ${l.tag} · ${l.xp} XP</div>
+      <h2>${l.emoji} ${l.title}</h2>
+      <p>${l.tagline}</p>
+    </div>
+
+    <div class="timer-block">
+      <div>
+        <div class="timer-display" id="timer-display">${formatTime(timerSeconds)}</div>
+        <div class="timer-label">⏱ Session timer</div>
+      </div>
+      <button class="timer-btn" id="timer-btn" onclick="toggleTimer()">▶ Start</button>
+    </div>
+
+    <div class="steps-container">${stepsHTML}</div>
+
+    <div class="complete-section">
+      <h3>How did that feel?</h3>
+      <p>Tap one — no wrong answers!</p>
+      <div class="feel-row">
+        ${feelOptions.map(f => `
+          <button class="feel-btn ${selectedFeel === f.emoji ? 'selected' : ''}"
+            onclick="selectFeel('${f.emoji}')">
+            ${f.emoji}<span>${f.label}</span>
+          </button>
+        `).join('')}
+      </div>
+      <button class="mark-done-btn" id="mark-done-btn"
+        onclick="markDone()" ${isDone ? 'disabled' : ''}>
+        ${isDone ? '✅ Mission Complete!' : '⚡ Mark Mission Done!'}
+      </button>
+    </div>
+  `;
+}
+
+function toggleStep(i) {
+  openStep = openStep === i ? -1 : i;
+  renderLesson();
+}
+
+function nextStep(i) {
+  openStep = i + 1;
+  renderLesson();
+  // Scroll to next step
+  setTimeout(() => {
+    const el = document.getElementById('step-' + (i+1));
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+// ─────────────────────────────────────
+// TIMER
+// ─────────────────────────────────────
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function toggleTimer() {
+  if (timerRunning) { stopTimer(); }
+  else { startTimer(); }
+}
+
+function startTimer() {
+  timerRunning = true;
+  document.getElementById('timer-btn').textContent = '⏸ Pause';
+  document.getElementById('timer-btn').classList.add('running');
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    const disp = document.getElementById('timer-display');
+    if (disp) {
+      disp.textContent = formatTime(timerSeconds);
+      disp.className = 'timer-display' + (timerSeconds <= 60 ? ' warning' : '') + (timerSeconds <= 0 ? ' done-color' : '');
+    }
+    if (timerSeconds <= 0) {
+      stopTimer();
+      const btn = document.getElementById('timer-btn');
+      if (btn) { btn.textContent = '✅ Done!'; btn.disabled = true; }
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  const btn = document.getElementById('timer-btn');
+  if (btn && !btn.disabled) {
+    btn.textContent = '▶ Start';
+    btn.classList.remove('running');
+  }
+}
+
+// ─────────────────────────────────────
+// FEELINGS + COMPLETE
+// ─────────────────────────────────────
+function selectFeel(emoji) {
+  state.feelings[currentLesson.id] = emoji;
+  saveState();
+  document.querySelectorAll('.feel-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.textContent.trim().startsWith(emoji));
+  });
+}
+
+function markDone() {
+  if (state.completed.includes(currentLesson.id)) return;
+  state.completed.push(currentLesson.id);
+  saveState();
+
+  const btn = document.getElementById('mark-done-btn');
+  if (btn) { btn.textContent = '✅ Mission Complete!'; btn.disabled = true; }
+
+  launchConfetti();
+  setTimeout(() => showBadge(currentLesson.badge), 800);
+}
+
+// ─────────────────────────────────────
+// CONFETTI
+// ─────────────────────────────────────
+function launchConfetti() {
+  const wrap = document.getElementById('confetti-wrap');
+  wrap.innerHTML = '';
+  const colors = ['#7C3AED','#FCD34D','#34D399','#F87171','#60A5FA','#F472B6'];
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    piece.style.animationDelay = Math.random() * 0.5 + 's';
+    piece.style.width = piece.style.height = (6 + Math.random() * 8) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    wrap.appendChild(piece);
+  }
+  setTimeout(() => wrap.innerHTML = '', 4000);
+}
+
+// ─────────────────────────────────────
+// BADGE
+// ─────────────────────────────────────
+function showBadge(badge) {
+  document.getElementById('badge-icon').textContent = badge.icon;
+  document.getElementById('badge-title').textContent = badge.title;
+  document.getElementById('badge-msg').textContent = badge.msg;
+  document.getElementById('badge-popup').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeBadge() {
+  document.getElementById('badge-popup').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+
+  // If all done, show module complete
+  if (state.completed.length === LESSONS.length) {
+    setTimeout(() => {
+      showBadge({
+        icon: '⚡',
+        title: 'MODULE 1 COMPLETE!',
+        msg: 'You earned the Neuro-Rhythm badge! Your brain is awake. Module 2 awaits.'
+      });
+    }, 300);
+  }
+}
+
+// ─────────────────────────────────────
+// INIT
+// ─────────────────────────────────────
+loadState();
+setMode(state.mode || 'together');
+renderHome();
+</script>
+</body>
+</html>
