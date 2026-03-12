@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Art – Module 2: Mirror World</title>
+<style>
+  :root {
+    --teal: #0891B2;
+    --teal-light: #CFFAFE;
+    --teal-dark: #0E7490;
+    --bg: #F8FAFC;
+    --dark: #1E293B;
+    --mid: #64748B;
+    --white: #FFFFFF;
+    --green: #059669;
+    --yellow: #D97706;
+    --purple: #7C3AED;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #0E7490, #0891B2);
+    color: white;
+    padding: 24px 20px 20px;
+    text-align: center;
+  }
+  .header .module-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    opacity: 0.75;
+    margin-bottom: 8px;
+  }
+  .header h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 900; }
+  .header p  { font-size: 0.9rem; opacity: 0.85; margin-top: 6px; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+  .xp-bar-wrap {
+    background: rgba(255,255,255,0.2);
+    border-radius: 99px;
+    height: 12px;
+    margin: 16px auto 0;
+    max-width: 320px;
+    overflow: hidden;
+  }
+  .xp-bar {
+    background: #FCD34D;
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s ease;
+    width: 0%;
+  }
+  .xp-label {
+    font-size: 0.75rem;
+    opacity: 0.85;
+    margin-top: 6px;
+    font-weight: 700;
+  }
+
+  /* ── NAV BACK TO M1 ── */
+  .module-nav {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding: 14px 16px;
+    background: white;
+    border-bottom: 2px solid #E2E8F0;
+    flex-wrap: wrap;
+  }
+  .module-nav a {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--mid);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 99px;
+    border: 2px solid #E2E8F0;
+    transition: all 0.2s;
+  }
+  .module-nav a:hover { border-color: var(--teal); color: var(--teal); }
+  .module-nav a.current { background: var(--teal); color: white; border-color: var(--teal); }
+
+  /* ── MODE TOGGLE ── */
+  .mode-toggle {
+    display: flex;
+    background: white;
+    border-radius: 99px;
+    padding: 4px;
+    border: 2px solid rgba(255,255,255,0.3);
+    max-width: 280px;
+    margin: 16px auto 0;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 99px;
+    border: none;
+    background: none;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: rgba(255,255,255,0.7);
+    min-height: 44px;
+  }
+  .mode-btn.active { background: white; color: var(--teal-dark); }
+
+  /* ── LESSON LIST ── */
+  .lesson-list {
+    max-width: 600px;
+    margin: 28px auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .lesson-btn {
+    background: white;
+    border: 2px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    min-height: 80px;
+  }
+  .lesson-btn:hover { border-color: var(--teal); transform: translateX(4px); box-shadow: 0 4px 16px rgba(8,145,178,0.12); }
+  .lesson-btn.done { border-color: var(--green); background: #F0FDF4; }
+  .lesson-btn.locked { opacity: 0.45; cursor: not-allowed; }
+  .lesson-btn.locked:hover { transform: none; box-shadow: none; border-color: #E2E8F0; }
+
+  .lesson-num {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    color: var(--teal-dark);
+    font-weight: 900;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .lesson-btn.done .lesson-num { background: #DCFCE7; color: var(--green); }
+
+  .lesson-info h3 { font-size: 1rem; font-weight: 800; margin-bottom: 3px; }
+  .lesson-info p  { font-size: 0.8rem; color: var(--mid); }
+
+  .lesson-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 99px;
+    background: var(--teal-light);
+    color: var(--teal-dark);
+    margin-left: auto;
+    flex-shrink: 0;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+  }
+  .lesson-btn.done .lesson-tag { background: #DCFCE7; color: var(--green); }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .lesson-screen {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+
+  .back-btn {
+    background: none;
+    border: 2px solid #E2E8F0;
+    border-radius: 99px;
+    padding: 12px 22px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+    color: var(--dark);
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .back-btn:hover { background: #F1F5F9; }
+
+  .lesson-hero {
+    background: linear-gradient(135deg, #0E7490, #0891B2);
+    border-radius: 20px;
+    padding: 28px 24px;
+    color: white;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .lesson-hero::after {
+    content: attr(data-emoji);
+    position: absolute;
+    right: 16px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 4rem;
+    opacity: 0.25;
+  }
+  .lesson-hero .tag { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin-bottom: 6px; }
+  .lesson-hero h2 { font-size: 1.4rem; font-weight: 900; margin-bottom: 6px; }
+  .lesson-hero p  { font-size: 0.88rem; opacity: 0.85; max-width: 380px; }
+
+  /* ── STEPS ── */
+  .step-card {
+    background: white;
+    border-radius: 14px;
+    border: 2px solid #E2E8F0;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .step-card.active-step { border-color: var(--teal); box-shadow: 0 4px 16px rgba(8,145,178,0.12); }
+  .step-card.completed-step { border-color: var(--green); background: #F0FDF4; }
+
+  .step-header {
+    padding: 18px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    min-height: 64px;
+  }
+  .step-number {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    color: var(--teal-dark);
+    font-weight: 900;
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-card.active-step .step-number { background: var(--teal); color: white; }
+  .step-card.completed-step .step-number { background: var(--green); color: white; }
+
+  .step-title { font-size: 1rem; font-weight: 700; flex: 1; padding-top: 6px; }
+  .step-chevron { font-size: 0.85rem; color: var(--mid); padding-top: 8px; transition: transform 0.2s; }
+  .step-card.open .step-chevron { transform: rotate(180deg); }
+
+  .step-body {
+    display: none;
+    padding: 0 20px 18px 70px;
+    font-size: 0.9rem;
+    color: #334155;
+    line-height: 1.75;
+  }
+  .step-card.open .step-body { display: block; }
+
+  .step-done-btn {
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 99px;
+    padding: 12px 24px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 14px;
+    transition: all 0.2s;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .step-done-btn:hover { background: var(--teal-dark); }
+
+  /* ── BRAIN / TIP BOXES ── */
+  .brain-box {
+    background: #FAF5FF;
+    border-left: 4px solid var(--purple);
+    border-radius: 0 12px 12px 0;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.88rem;
+    color: #4C1D95;
+    line-height: 1.6;
+  }
+  .brain-box strong { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; opacity: 0.7; }
+
+  .tip-box {
+    background: #EFF6FF;
+    border-left: 4px solid #3B82F6;
+    border-radius: 0 12px 12px 0;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.88rem;
+    color: #1E40AF;
+    line-height: 1.6;
+  }
+  .tip-box strong { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; opacity: 0.7; }
+
+  .warning-box {
+    background: #FFFBEB;
+    border-left: 4px solid #F59E0B;
+    border-radius: 0 12px 12px 0;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 0.88rem;
+    color: #92400E;
+    line-height: 1.6;
+  }
+  .warning-box strong { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; opacity: 0.7; }
+
+  /* ── COMPLETE SECTION ── */
+  .complete-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    border: 2px solid #E2E8F0;
+    margin-top: 20px;
+  }
+  .complete-section h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+  .complete-section p { font-size: 0.85rem; color: var(--mid); margin-bottom: 16px; }
+
+  .feel-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .feel-btn {
+    background: #F1F5F9;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    font-size: 1.6rem;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 70px;
+    min-height: 70px;
+    justify-content: center;
+  }
+  .feel-btn span { font-size: 0.68rem; font-weight: 700; color: var(--mid); }
+  .feel-btn:hover, .feel-btn.selected { border-color: var(--teal); background: var(--teal-light); transform: scale(1.08); }
+
+  .mark-done-btn {
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 99px;
+    padding: 16px 36px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    max-width: 300px;
+    min-height: 56px;
+  }
+  .mark-done-btn:hover { background: var(--teal-dark); transform: scale(1.02); }
+  .mark-done-btn:disabled { background: var(--green); cursor: default; transform: none; }
+
+  /* ── CONFETTI ── */
+  .confetti-wrap {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 999; overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute; top: -10px;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+  /* ── BADGE POPUP ── */
+  .badge-popup {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: white; border-radius: 24px;
+    padding: 36px 40px; text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 340px; width: 90%;
+  }
+  .badge-popup.show { transform: translate(-50%, -50%) scale(1); }
+  .badge-popup .badge-icon { font-size: 4rem; margin-bottom: 12px; }
+  .badge-popup h2 { font-size: 1.4rem; font-weight: 900; margin-bottom: 6px; }
+  .badge-popup p { font-size: 0.88rem; color: var(--mid); margin-bottom: 20px; }
+  .badge-popup button {
+    background: var(--teal); color: white; border: none;
+    border-radius: 99px; padding: 14px 32px;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    min-height: 52px; width: 100%;
+  }
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 999; display: none;
+  }
+  .overlay.show { display: block; }
+</style>
+</head>
+<body>
+
+<!-- MODULE NAV -->
+<div class="module-nav">
+  <a href="module1.html">⚡ Module 1</a>
+  <a href="module2.html" class="current">🪞 Module 2</a>
+  <a href="module3.html">🏆 Module 3</a>
+  <a href="module4.html">✍️ Module 4</a>
+  <a href="module5.html">🔍 Module 5</a>
+</div>
+
+<!-- SCREEN 1: HOME -->
+<div id="screen-home" class="screen active">
+  <div class="header">
+    <div class="module-tag">Module 2 of 5</div>
+    <h1>🪞 Mirror World</h1>
+    <p>Both hands work together like a mirror. 10 missions. Build the superhighway.</p>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-together" onclick="setMode('together')">🧑‍🦰 Together</button>
+      <button class="mode-btn" id="btn-solo" onclick="setMode('solo')">⚡ Solo</button>
+    </div>
+    <div class="xp-bar-wrap"><div class="xp-bar" id="xp-bar"></div></div>
+    <div class="xp-label" id="xp-label">0 / 10 missions done · 0 XP</div>
+  </div>
+  <div class="lesson-list" id="lesson-list"></div>
+</div>
+
+<!-- SCREEN 2: LESSON -->
+<div id="screen-lesson" class="screen">
+  <div class="lesson-screen">
+    <button class="back-btn" onclick="goHome()">← Back to Missions</button>
+    <div id="lesson-content"></div>
+  </div>
+</div>
+
+<!-- CONFETTI + BADGE -->
+<div class="confetti-wrap" id="confetti-wrap"></div>
+<div class="overlay" id="overlay"></div>
+<div class="badge-popup" id="badge-popup">
+  <div class="badge-icon" id="badge-icon">🏅</div>
+  <h2 id="badge-title">Mission Complete!</h2>
+  <p id="badge-msg">Great work, Freddie!</p>
+  <button onclick="closeBadge()">Keep Going →</button>
+</div>
+
+<script>
+const LESSONS = [
+  {
+    id: 1,
+    title: "Why Mirrors Matter",
+    tag: "Theory",
+    emoji: "🪞",
+    tagline: "The science behind why both hands together = bigger brain.",
+    xp: 50,
+    badge: { icon: "🪞", title: "Mirror Brain Unlocked!", msg: "You know the secret. Now let's use it." },
+    steps: [
+      {
+        title: "Your brain has two sides",
+        body: `Think of your brain like two best friends living side by side — left brain and right brain.<br><br>
+🧠 <strong>Left brain</strong> — loves logic, steps, language<br>
+🎨 <strong>Right brain</strong> — loves creativity, feelings, big pictures<br><br>
+Most of the time they work separately. <strong>Mirror World makes them work TOGETHER.</strong>`
+      },
+      {
+        title: "The superhighway",
+        body: `Between your two brain halves there's a bridge called the <strong>corpus callosum</strong>.<br><br>
+When you do mirror movements — both hands doing the same thing at the same time — that bridge gets THICKER.<br><br>
+<div class="brain-box"><strong>🧠 Brain Science</strong>A thicker corpus callosum = faster thinking, better creativity, smoother movement. Musicians who play piano have measurably thicker bridges than people who don't. Mirror drawing does the same thing.</div>`
+      },
+      {
+        title: "What mirror means",
+        body: `In mirror drawing:<br><br>
+If your right hand moves LEFT → your left hand moves RIGHT<br>
+If one hand curves UP → the other curves UP too<br><br>
+<div class="tip-box"><strong>💡 Picture this</strong>Press both hands against a real mirror. Whatever one hand does, the reflection does the opposite direction but the same movement. That's exactly what you're going for.</div>`
+      },
+      {
+        title: "What to expect",
+        body: `Your non-dominant hand is going to feel weird and clunky at first. <strong>That is 100% normal and actually means it's working.</strong><br><br>
+That awkwardness is your brain building brand new roads.<br><br>
+By Lesson 10 of this module, both hands will feel much more natural together. Watch for it — it's one of the coolest feelings in this whole course.`
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: "Spiral Smart Moves",
+    tag: "Drawing",
+    emoji: "🌀",
+    tagline: "Draw spirals with both hands at the same time.",
+    xp: 75,
+    badge: { icon: "🌀", title: "Spiral Master!", msg: "+75 XP. Both hands moving together!" },
+    steps: [
+      {
+        title: "Get set up",
+        body: `You need two pencils and two pieces of paper side by side — or one big piece.<br><br>
+Place both pencil tips in the CENTER of the paper (or each paper).<br><br>
+<div class="tip-box"><strong>💡 Why spirals?</strong>Spirals are everywhere in nature — DNA, galaxies, fingerprints, snail shells. Your brain LOVES this shape. The circular motion calms your nervous system while training coordination at the same time.</div>`
+      },
+      {
+        title: "Outward spiral — both hands",
+        body: `Both hands draw a circle moving OUTWARD from the center at the same time.<br><br>
+Go slowly — match the speed of your slower hand.<br><br>
+When you reach the edge — PAUSE. Bring both hands back to center.<br><br>
+Do this <strong>3 times</strong>.`
+      },
+      {
+        title: "Inward spiral — harder!",
+        body: `Now start from the OUTSIDE and spiral INWARD to the center.<br><br>
+This is harder because your brain has to reverse the pattern it just learned.<br><br>
+<div class="warning-box"><strong>⚠️ Heads up</strong>Your brain will want to go outward again. That's motor memory kicking in. Override it. The override IS the training.</div>
+Do this <strong>3 times</strong>.`
+      },
+      {
+        title: "Eyes closed challenge",
+        body: `One more outward spiral — but this time <strong>close your eyes</strong>.<br><br>
+Let your hands guide themselves. Don't peek.<br><br>
+Open your eyes when both hands reach the edge.<br><br>
+<div class="brain-box"><strong>🧠 What just happened</strong>Without your eyes, your brain had to rely purely on proprioception — your body's sense of where it is in space. You just trained a whole new neural sense.</div>`
+      }
+    ]
+  },
+  {
+    id: 3,
+    title: "Butterfly Wings",
+    tag: "Drawing",
+    emoji: "🦋",
+    tagline: "Your hands become the two wings of a butterfly.",
+    xp: 75,
+    badge: { icon: "🦋", title: "Butterfly Brain!", msg: "+75 XP. Symmetry unlocked!" },
+    steps: [
+      {
+        title: "Draw the body",
+        body: `Draw a vertical line down the CENTER of your paper. This is the butterfly's body.<br><br>
+Everything you draw will mirror on each side of this line.<br><br>
+<div class="tip-box"><strong>💡 Butterfly wings are nature's perfect mirror.</strong>Each wing is an exact reflection of the other. Today your hands ARE the two wings.</div>`
+      },
+      {
+        title: "Draw the wings — both hands",
+        body: `Left hand starts at the center line and draws a curved teardrop shape going LEFT and UP.<br><br>
+Right hand mirrors it — same teardrop going RIGHT and UP.<br><br>
+<strong>Both hands move at the same time.</strong> Slow and smooth.<br><br>
+Do this 3 times until both wings look roughly the same size.`
+      },
+      {
+        title: "Add inner details",
+        body: `Inside each wing, draw a smaller teardrop shape — both hands simultaneously.<br><br>
+Then add dots: tap both pencils at the same time to make matching dot patterns on each wing.<br><br>
+Like drumming a beat — both hands tap together.`
+      },
+      {
+        title: "Color it in",
+        body: `Pick two colors. Color each wing using mirrored hand movements:<br><br>
+If left hand colors left-to-right → right hand colors right-to-left.<br><br>
+Both hands move simultaneously the whole time.<br><br>
+Your butterfly is done. And it was built by your bilateral brain. 🦋`
+      }
+    ]
+  },
+  {
+    id: 4,
+    title: "Owl Glide",
+    tag: "Movement",
+    emoji: "🦉",
+    tagline: "Draw infinity loops with both hands. Cross the midline.",
+    xp: 75,
+    badge: { icon: "🦉", title: "Owl Glider!", msg: "+75 XP. Midline crossed!" },
+    steps: [
+      {
+        title: "What's a figure-8?",
+        body: `A figure-8 looks like this: ∞<br><br>
+It's also called an infinity loop. You're going to draw it BIG — using your whole arm, not just your wrist.<br><br>
+<div class="brain-box"><strong>🧠 Why this is special</strong>The figure-8 crosses the midline of your body — the invisible line down the center of you. Crossing it activates BOTH brain hemispheres at once. Owls "glide" without flapping — smooth, no stops.</div>`
+      },
+      {
+        title: "Set up at a wall or big paper",
+        body: `Use a big piece of paper (or a whiteboard if you have one). Both hands hold markers or pencils.<br><br>
+Stand an arm's length away.<br><br>
+Start both hands at the center point of where your figure-8 will cross.`
+      },
+      {
+        title: "Glide — 10 loops",
+        body: `Both hands draw the horizontal figure-8 simultaneously — moving outward, looping, crossing back through center.<br><br>
+<strong>Do 10 full loops without lifting your hands.</strong><br><br>
+Keep your shoulders relaxed. Let the movement come from your whole arm — not just wrist.`
+      },
+      {
+        title: "Reverse — 10 more loops",
+        body: `Now reverse direction for 10 more loops.<br><br>
+Then try <strong>5 loops with eyes closed.</strong><br><br>
+Feel the flow. That smooth, continuous movement is your two brain halves working in sync.`
+      }
+    ]
+  },
+  {
+    id: 5,
+    title: "Mirror Line Challenge",
+    tag: "Challenge",
+    emoji: "📏",
+    tagline: "One hand draws. The other mirrors it in real time.",
+    xp: 80,
+    badge: { icon: "📏", title: "Mirror Champion!", msg: "+80 XP. Real-time mirroring unlocked!" },
+    steps: [
+      {
+        title: "Set up your paper",
+        body: `Draw a vertical center line down your paper. This divides it into LEFT and RIGHT zones.<br><br>
+Both hands hold pencils. Left hand works on the left side. Right hand works on the right side.`
+      },
+      {
+        title: "Dominant hand leads",
+        body: `Your dominant hand draws a slow, clear movement on its side — a gentle wave, a curve, a zigzag.<br><br>
+Your other hand <strong>mirrors it at the same time</strong> on the opposite side.<br><br>
+<div class="warning-box"><strong>⚠️ Important</strong>Don't draw first THEN mirror. Both hands move SIMULTANEOUSLY. Even if the non-dominant hand is slower — keep both moving at the same time.</div>
+Try 5 different shapes.`
+      },
+      {
+        title: "Switch — non-dominant leads",
+        body: `Now flip it. Your non-dominant hand draws. Your dominant hand follows and mirrors.<br><br>
+This feels very different — and that's the point.<br><br>
+Try 5 more shapes with the non-dominant hand leading.`
+      },
+      {
+        title: "Speed it up",
+        body: `Try the same challenge but faster. Your mirror hand has to keep up.<br><br>
+Try: fast straight lines, fast zigzags, fast loops.<br><br>
+<div class="brain-box"><strong>🧠 What's happening</strong>Your brain is processing visual input from your lead hand and translating it into a mirrored motor output in real time. This is incredibly demanding — and incredibly good for you.</div>`
+      }
+    ]
+  },
+  {
+    id: 6,
+    title: "Double Draw",
+    tag: "Drawing",
+    emoji: "✏️",
+    tagline: "Draw the same picture with both hands at once.",
+    xp: 80,
+    badge: { icon: "✏️", title: "Double Draw Done!", msg: "+80 XP. Both hands creating together!" },
+    steps: [
+      {
+        title: "Pick a simple image",
+        body: `Choose one of these — simple is better:<br><br>
+⭐ A star &nbsp;&nbsp; 🏠 A house &nbsp;&nbsp; ❤️ A heart &nbsp;&nbsp; ☁️ A cloud<br><br>
+Two pieces of paper side by side. Both hands hold pencils. Both hands at the starting position.`
+      },
+      {
+        title: "Draw simultaneously",
+        body: `Both hands draw the same image at the same time.<br><br>
+<strong>Do NOT let one hand stop and wait for the other.</strong> Keep both moving even if they're out of sync.<br><br>
+The result won't be perfect. That is completely fine — your brain is working at maximum capacity right now.`
+      },
+      {
+        title: "Compare and repeat",
+        body: `Look at both drawings. Which elements matched? Which didn't?<br><br>
+Repeat the same image <strong>3 times total</strong>.<br><br>
+Watch the consistency improve from try 1 to try 3. That improvement happening in real time is neuroplasticity in action.`
+      },
+      {
+        title: "Level up",
+        body: `Try a slightly more complex image — a simple face (circle + two dots + a smile).<br><br>
+Both hands. Same time. 3 tries.<br><br>
+<div class="tip-box"><strong>💡 Fun challenge</strong>Show someone your two drawings without telling them how you made them. See if they can guess!</div>`
+      }
+    ]
+  },
+  {
+    id: 7,
+    title: "Spiral Focus",
+    tag: "Advanced",
+    emoji: "🎯",
+    tagline: "Spirals with speed and size changes. Advanced level.",
+    xp: 85,
+    badge: { icon: "🎯", title: "Spiral Focus!", msg: "+85 XP. Speed AND control together!" },
+    steps: [
+      {
+        title: "SLOW spiral — 30 seconds",
+        body: `Take <strong>30 full seconds</strong> to complete one outward spiral with both hands.<br><br>
+As slow as physically possible while keeping both hands synchronized.<br><br>
+Use a timer. This level of slowness is harder than it sounds.`
+      },
+      {
+        title: "FAST spiral — 5 seconds",
+        body: `Same size spiral — complete it in under <strong>5 seconds</strong>.<br><br>
+Both hands must stay matched even at speed.<br><br>
+Do slow → fast → slow → fast. Notice how your brain switches between modes.`
+      },
+      {
+        title: "TINY spiral",
+        body: `Draw a spiral that fits inside a circle the size of a quarter — both hands simultaneously.<br><br>
+This requires fine motor precision AND bilateral coordination at the same time.<br><br>
+Do 5 tiny spirals.`
+      },
+      {
+        title: "GIANT spiral",
+        body: `Fill the entire page with one giant spiral — both hands drawing outward from center, one on each side of the paper.<br><br>
+<div class="brain-box"><strong>🧠 Size matters</strong>Large movements train your shoulder and arm motor pathways. Small movements train your wrist and finger pathways. You just trained both in the same lesson.</div>`
+      }
+    ]
+  },
+  {
+    id: 8,
+    title: "Owl Mirror Trace",
+    tag: "Tracing",
+    emoji: "🦉",
+    tagline: "Left hand traces the left side. Right traces the right. Together.",
+    xp: 80,
+    badge: { icon: "🦉", title: "Owl Traced!", msg: "+80 XP. Perfect symmetry!" },
+    steps: [
+      {
+        title: "Draw or print an owl outline",
+        body: `Draw a simple symmetrical owl shape on paper — or use any symmetrical animal outline.<br><br>
+The key: it must be perfectly symmetrical so both sides are mirror images.<br><br>
+Place it centered in front of you.`
+      },
+      {
+        title: "Hands at the top",
+        body: `Both hands place pencils at the TOP CENTER of the owl's head.<br><br>
+Left hand will trace the LEFT side of the outline downward.<br><br>
+Right hand will trace the RIGHT side downward.<br><br>
+<strong>Both start at exactly the same moment.</strong>`
+      },
+      {
+        title: "Trace down — together",
+        body: `Both hands trace their side of the owl simultaneously — moving downward at the same speed.<br><br>
+Focus on matching the SPEED of both hands, not perfect accuracy.<br><br>
+Meet at the bottom. Lift both hands. Done.`
+      },
+      {
+        title: "3 rounds — get faster",
+        body: `Repeat 3 times total. Try to get a little faster each round.<br><br>
+<div class="tip-box"><strong>💡 Notice</strong>By round 3 your hands should feel like they're almost pulling each other along — like they're connected. That synchronized feeling is your corpus callosum getting stronger.</div>`
+      }
+    ]
+  },
+  {
+    id: 9,
+    title: "Bat and Hare",
+    tag: "Game",
+    emoji: "🦇",
+    tagline: "One hand sends. The other echoes. Then switch.",
+    xp: 85,
+    badge: { icon: "🦇", title: "Echo Master!", msg: "+85 XP. Send and receive — both ways!" },
+    steps: [
+      {
+        title: "Meet Bat and Hare",
+        body: `🦇 <strong>BAT</strong> = your dominant hand. It "sends" — draws a slow clear movement first.<br><br>
+🐇 <strong>HARE</strong> = your non-dominant hand. It "echoes" — mirrors the movement as fast as possible, with about a 1-second lag.<br><br>
+<div class="tip-box"><strong>💡 Like echolocation</strong>Bats send a sound signal and receive the echo back. Your hands are doing the same thing — one sends, one receives.</div>`
+      },
+      {
+        title: "Bat leads — 5 shapes",
+        body: `Dominant hand (Bat) draws 5 different slow, clear shapes — one at a time:<br><br>
+A loop → a zigzag → a wave → a circle → a straight line<br><br>
+Non-dominant hand (Hare) echoes each one about 1 second behind.<br><br>
+Don't wait for the echo to finish before the Bat draws the next shape.`
+      },
+      {
+        title: "Switch — Hare leads",
+        body: `Now flip it. Non-dominant hand leads. Dominant hand echoes.<br><br>
+This is much harder for most people — your dominant hand isn't used to following.<br><br>
+<div class="brain-box"><strong>🧠 Why switch matters</strong>When your dominant hand has to FOLLOW, it builds new neural control pathways that are usually underdeveloped. The discomfort you feel = maximum brain growth happening.</div>`
+      },
+      {
+        title: "Speed round",
+        body: `Both hands — any leader — drawing and echoing as fast as possible for 60 seconds straight.<br><br>
+Don't think. Just move. Let your hands figure it out.<br><br>
+This is what trained bilateral coordination feels like.`
+      }
+    ]
+  },
+  {
+    id: 10,
+    title: "Wall Swirls",
+    tag: "Big Movement",
+    emoji: "🌊",
+    tagline: "Giant swirling movements on the wall. Train your whole arm.",
+    xp: 90,
+    badge: { icon: "🌊", title: "Wall Swirl Champion!", msg: "+90 XP. Module 2 COMPLETE! Mirror World badge earned! 🪞" },
+    steps: [
+      {
+        title: "Set up the wall",
+        body: `Tape two large pieces of paper side by side on a wall at shoulder height.<br><br>
+Stand an arm's length away. Both hands hold markers.<br><br>
+<div class="brain-box"><strong>🧠 Why the wall?</strong>Drawing on a wall uses your shoulder, elbow, AND core — not just your fingers. This activates larger areas of your motor cortex and builds coordination from the center of your body outward.</div>`
+      },
+      {
+        title: "Start swirling",
+        body: `Both hands start at the center where the two papers meet.<br><br>
+Draw large, flowing swirls simultaneously — both hands moving outward, then looping back, then figure-8s.<br><br>
+<strong>Keep your shoulders relaxed.</strong> No tension. Let the movement flow from your whole arm.`
+      },
+      {
+        title: "2 minutes of pure flow",
+        body: `Set a timer for 2 minutes. Just swirl. No rules. Both hands moving together in whatever pattern feels natural.<br><br>
+Inward, outward, loops, figure-8s, waves — anything goes as long as both hands keep moving simultaneously.`
+      },
+      {
+        title: "Step back and look",
+        body: `Stop. Step back. Look at your wall art.<br><br>
+Both sides should be a loose mirror of each other — not perfect, but clearly related.<br><br>
+<div class="tip-box"><strong>💡 That's your brain on paper.</strong>Two hemispheres. One creation. Module 2 complete — you built the bridge. Module 3 is the Major League. Get ready. 🏆</div>`
+      }
+    ]
+  }
+];
+
+// ─────────────────────────────────────
+// STATE
+// ─────────────────────────────────────
+const STORAGE_KEY = 'freddie_m2_progress';
+let state = { completed: [], feelings: {}, mode: 'together' };
+let currentLesson = null;
+let openStep = 0;
+
+function loadState() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) state = JSON.parse(s); } catch(e) {}
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function setMode(mode) {
+  state.mode = mode;
+  saveState();
+  document.getElementById('btn-together').classList.toggle('active', mode === 'together');
+  document.getElementById('btn-solo').classList.toggle('active', mode === 'solo');
+}
+
+function renderHome() {
+  const done = state.completed.length;
+  const totalXP = state.completed.reduce((sum, id) => {
+    const l = LESSONS.find(x => x.id === id);
+    return sum + (l ? l.xp : 0);
+  }, 0);
+  document.getElementById('xp-bar').style.width = (done / LESSONS.length * 100) + '%';
+  document.getElementById('xp-label').textContent = `${done} / ${LESSONS.length} missions done · ${totalXP} XP`;
+  const list = document.getElementById('lesson-list');
+  list.innerHTML = '';
+  LESSONS.forEach((lesson, i) => {
+    const isDone = state.completed.includes(lesson.id);
+    const isLocked = i > 0 && !state.completed.includes(LESSONS[i-1].id);
+    const btn = document.createElement('button');
+    btn.className = 'lesson-btn' + (isDone ? ' done' : '') + (isLocked ? ' locked' : '');
+    btn.innerHTML = `
+      <div class="lesson-num">${isDone ? '✓' : lesson.id}</div>
+      <div class="lesson-info">
+        <h3>${lesson.emoji} ${lesson.title}</h3>
+        <p>${lesson.tagline}</p>
+      </div>
+      ${isDone ? `<div style="margin-left:auto;font-size:1.3rem;">⭐</div>`
+               : `<span class="lesson-tag">${isLocked ? '🔒' : lesson.tag}</span>`}
+    `;
+    if (!isLocked) btn.onclick = () => openLesson(lesson.id);
+    list.appendChild(btn);
+  });
+}
+
+function openLesson(id) {
+  currentLesson = LESSONS.find(l => l.id === id);
+  openStep = 0;
+  document.getElementById('screen-home').classList.remove('active');
+  document.getElementById('screen-lesson').classList.add('active');
+  window.scrollTo(0,0);
+  renderLesson();
+}
+
+function goHome() {
+  document.getElementById('screen-lesson').classList.remove('active');
+  document.getElementById('screen-home').classList.add('active');
+  renderHome();
+  window.scrollTo(0,0);
+}
+
+function renderLesson() {
+  const l = currentLesson;
+  const isDone = state.completed.includes(l.id);
+  const selectedFeel = state.feelings[l.id] || null;
+  const stepsHTML = l.steps.map((step, i) => {
+    const isOpen = i === openStep;
+    const isComp = i < openStep;
+    return `
+      <div class="step-card ${isOpen ? 'active-step open' : ''} ${isComp ? 'completed-step' : ''}" id="step-${i}">
+        <div class="step-header" onclick="toggleStep(${i})">
+          <div class="step-number">${isComp ? '✓' : i+1}</div>
+          <div class="step-title">${step.title}</div>
+          <div class="step-chevron">${isOpen ? '▲' : '▼'}</div>
+        </div>
+        <div class="step-body">
+          ${step.body}
+          ${i < l.steps.length - 1 && isOpen
+            ? `<button class="step-done-btn" onclick="nextStep(${i})">Got it → Next step</button>`
+            : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('lesson-content').innerHTML = `
+    <div class="lesson-hero" data-emoji="${l.emoji}">
+      <div class="tag">Mission ${l.id} of ${LESSONS.length} · ${l.tag} · ${l.xp} XP</div>
+      <h2>${l.emoji} ${l.title}</h2>
+      <p>${l.tagline}</p>
+    </div>
+    <div class="steps-container">${stepsHTML}</div>
+    <div class="complete-section">
+      <h3>How did that feel?</h3>
+      <p>Tap one!</p>
+      <div class="feel-row">
+        ${[['😤','Hard!'],['😐','Okay'],['😎','Easy!'],['🤩','Fun!']].map(([e,l]) => `
+          <button class="feel-btn ${selectedFeel === e ? 'selected' : ''}" onclick="selectFeel('${e}')">
+            ${e}<span>${l}</span>
+          </button>`).join('')}
+      </div>
+      <button class="mark-done-btn" id="mark-done-btn" onclick="markDone()" ${isDone ? 'disabled' : ''}>
+        ${isDone ? '✅ Mission Complete!' : '🪞 Mark Mission Done!'}
+      </button>
+    </div>`;
+}
+
+function toggleStep(i) { openStep = openStep === i ? -1 : i; renderLesson(); }
+function nextStep(i) {
+  openStep = i + 1; renderLesson();
+  setTimeout(() => { const el = document.getElementById('step-'+(i+1)); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }, 100);
+}
+
+function selectFeel(emoji) {
+  state.feelings[currentLesson.id] = emoji; saveState();
+  document.querySelectorAll('.feel-btn').forEach(b => b.classList.toggle('selected', b.textContent.trim().startsWith(emoji)));
+}
+
+function markDone() {
+  if (state.completed.includes(currentLesson.id)) return;
+  state.completed.push(currentLesson.id); saveState();
+  const btn = document.getElementById('mark-done-btn');
+  if (btn) { btn.textContent = '✅ Mission Complete!'; btn.disabled = true; }
+  launchConfetti();
+  setTimeout(() => showBadge(currentLesson.badge), 800);
+}
+
+function launchConfetti() {
+  const wrap = document.getElementById('confetti-wrap');
+  wrap.innerHTML = '';
+  const colors = ['#0891B2','#FCD34D','#34D399','#F87171','#60A5FA','#F472B6'];
+  for (let i = 0; i < 80; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random()*100+'vw';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration = (1.5+Math.random()*2)+'s';
+    p.style.animationDelay = Math.random()*0.5+'s';
+    p.style.width = p.style.height = (6+Math.random()*8)+'px';
+    p.style.borderRadius = Math.random()>0.5?'50%':'2px';
+    wrap.appendChild(p);
+  }
+  setTimeout(() => wrap.innerHTML = '', 4000);
+}
+
+function showBadge(badge) {
+  document.getElementById('badge-icon').textContent = badge.icon;
+  document.getElementById('badge-title').textContent = badge.title;
+  document.getElementById('badge-msg').textContent = badge.msg;
+  document.getElementById('badge-popup').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeBadge() {
+  document.getElementById('badge-popup').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+  if (state.completed.length === LESSONS.length) {
+    setTimeout(() => showBadge({ icon: '🪞', title: 'MODULE 2 COMPLETE!', msg: 'Mirror World badge earned! The bridge is built. Module 3 — Major League — is next. 🏆' }), 300);
+  }
+}
+
+loadState();
+setMode(state.mode || 'together');
+renderHome();
+</script>
+</body>
+</html>
